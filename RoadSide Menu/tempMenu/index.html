@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordering System</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .menu-item { margin-bottom: 10px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1>📋 Menu</h1>
+    <div id="menu">
+        <div class="menu-item">
+            <label>Pizza ($10) </label>
+            <input type="number" id="pizzaQty" min="0" value="0">
+        </div>
+        <div class="menu-item">
+            <label>Burger ($5) </label>
+            <input type="number" id="burgerQty" min="0" value="0">
+        </div>
+        <br>
+        <input type="text" id="phone" placeholder="Enter your phone number">
+        <br><br>
+        <button onclick="placeOrder()">🛒 Place Order</button>
+        <br><br>
+        <button onclick="fetchOrders()">📦 View Orders (Admin)</button>
+    </div>
+
+    <h2>Admin Orders</h2>
+    <div id="orders"></div>
+
+    <script>
+        const backendURL = "http://localhost:5000";
+
+        function placeOrder() {
+            const pizzaQty = document.getElementById("pizzaQty").value;
+            const burgerQty = document.getElementById("burgerQty").value;
+            const phone = document.getElementById("phone").value;
+
+            const order = {
+                items: [],
+                phone: phone
+            };
+
+            if (pizzaQty > 0) order.items.push({ name: "Pizza", quantity: parseInt(pizzaQty), price: 10 });
+            if (burgerQty > 0) order.items.push({ name: "Burger", quantity: parseInt(burgerQty), price: 5 });
+
+            if (order.items.length === 0 || phone === "") {
+                alert("Please select items and enter your phone number!");
+                return;
+            }
+
+            fetch(`${backendURL}/order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(order)
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error:", error));
+        }
+
+        function fetchOrders() {
+            fetch(`${backendURL}/orders`)
+            .then(response => response.json())
+            .then(data => {
+                let ordersHTML = "";
+                data.forEach((order, index) => {
+                    ordersHTML += `<p>Order ${index + 1}: ${JSON.stringify(order)}</p>`;
+                });
+                document.getElementById("orders").innerHTML = ordersHTML;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>
